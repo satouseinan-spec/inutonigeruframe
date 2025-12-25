@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>犬と逃げる フレームAR</title>
+  <style>
+    html, body { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
+    #wrap { position:relative; width:100%; height:100%; }
+    video {
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      background:#000;
+    }
+    img#frame {
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:contain;   /* フレーム全体を必ず表示 */
+      pointer-events:none;
+    }
+    #ui {
+      position:absolute; left:12px; right:12px; bottom:12px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      color:#fff; font-family:system-ui, -apple-system, "Segoe UI", sans-serif;
+      text-shadow:0 1px 2px rgba(0,0,0,.6);
+    }
+    button {
+      padding:10px 12px; border-radius:12px; border:0;
+      background:rgba(255,255,255,.15); color:#fff; font-weight:700;
+      backdrop-filter: blur(6px);
+    }
+    .hint { font-size:12px; opacity:.9; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <video id="cam" autoplay playsinline muted></video>
+    <img id="frame" src="frame.png" alt="frame" />
+    <div id="ui">
+      <div class="hint">※ スクショでOK（動画撮影は端末のカメラアプリ推奨）</div>
+      <button id="flip">カメラ切替</button>
+    </div>
+  </div>
+
+<script>
+  const video = document.getElementById('cam');
+  const flipBtn = document.getElementById('flip');
+
+  let facingMode = 'environment'; // 背面カメラ
+  let stream = null;
+
+  async function startCamera() {
+    try {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode },
+        audio: false
+      });
+      video.srcObject = stream;
+    } catch (e) {
+      alert('カメラを起動できませんでした。HTTPSで開いているか、権限が許可されているか確認してください。\n\n' + e);
+    }
+  }
+
+  flipBtn.addEventListener('click', async () => {
+    facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+    await startCamera();
+  });
+
+  startCamera();
+</script>
+</body>
+</html>
